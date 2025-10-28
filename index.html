@@ -112,17 +112,6 @@
       color:rgba(102,255,194,0.18);
     }
 
-    img {
-  max-width: 100%;
-  height: auto;
-}
-
-    .container {
-  width: 90%;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
     @media (max-width:420px){
       .card{ padding:28px 18px; border-radius:12px; }
     }
@@ -133,7 +122,7 @@
 
   <main class="stage" role="main">
     <section class="card" aria-labelledby="headline">
-      <h1 id="headline">For Sale</h1>
+      <h1 id="headline">Domain For Sale</h1>
       <p class="contact">
         <a class="mail" id="mail-link" href="mailto:BQa3zxqxx@proton.me">Contact: BQa3zxqxx@proton.me</a>
       </p>
@@ -146,20 +135,29 @@
       Lekki, responsywny, bez zewnętrznych bibliotek.
     */
     (function(){
-      const canvas = document.getElementById('matrix');
-      const ctx = canvas.getContext('2d', { alpha: true });
-      let width = canvas.width = window.innerWidth;
-      let height = canvas.height = window.innerHeight;
-      const cols = Math.floor(width / 18);
-      const drops = new Array(cols).fill(1);
-      const letters = '01<>/\\|_-=+*#%@$€¥&?πΩ∆øλ░▒▓█▓▒░';
-      const size = 16;
+  const canvas = document.getElementById('matrix');
+  const ctx = canvas.getContext('2d', { alpha: true });
+  let width = canvas.width = window.innerWidth;
+  let height = canvas.height = window.innerHeight;
+  let size, cols;
+  let drops = [];
+  const letters = '01<>/\\|_-=+*#%@$€¥&?πΩ∆øλ░▒▓█▓▒░';
 
-      function resize(){
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
-      }
-      window.addEventListener('resize', resize, { passive:true });
+  // funkcja resize — dopasowuje canvas i kolumny do ekranu
+  function resize(){
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+
+    cols = Math.floor(width / 16); // liczba kolumn
+    size = width / cols;           // dopasowanie szerokości liter do ekranu
+
+    drops.length = cols;
+    drops.fill(1);
+  }
+
+  resize(); // ustaw początkowe wartości
+  window.addEventListener('resize', resize, { passive:true });
+
 
       function draw(){
         // translucent background for trail effect
