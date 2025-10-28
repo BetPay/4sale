@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>For Sale</title>
+  <style>
+    :root{
+      --bg:#000;
+      --neon:#00ff99;
+      --neon-dim:rgba(0,255,153,0.12);
+      --accent:#66ffc2;
+      --glass: rgba(255,255,255,0.03);
+      --font-stack: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
+    }
+    html,body{
+      height:100%;
+      margin:0;
+      background: radial-gradient(ellipse at center, rgba(0,0,0,0.65) 0%, #000 60%);
+      color:var(--neon);
+      font-family:var(--font-stack);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      overflow:hidden;
+    }
+
+    /* canvas for matrix rain sits full-screen */
+    canvas#matrix {
+      position:fixed;
+      inset:0;
+      width:100%;
+      height:100%;
+      z-index:0;
+      display:block;
+      background:linear-gradient(180deg, rgba(0,0,0,0.3), rgba(0,0,0,0.6));
+    }
+
+    .stage{
+      position:relative;
+      z-index:2;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:40px 20px;
+      box-sizing:border-box;
+    }
+
+    .card{
+      backdrop-filter: blur(4px) saturate(1.1);
+      background: linear-gradient(180deg, rgba(0,0,0,0.18), rgba(255,255,255,0.02));
+      border-radius:16px;
+      padding:48px 36px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+      border: 1px solid rgba(0,255,153,0.06);
+      max-width:900px;
+      width:100%;
+      transform:translateY(-6px);
+    }
+
+    h1{
+      margin:0 0 18px 0;
+      font-size:clamp(32px, 7vw, 84px);
+      letter-spacing:0.12em;
+      text-transform:uppercase;
+      color:var(--neon);
+      text-shadow:
+        0 0 10px rgba(0,255,153,0.16),
+        0 0 24px rgba(0,255,153,0.08),
+        0 8px 28px rgba(0,0,0,0.6);
+      line-height:0.95;
+      filter: drop-shadow(0 4px 14px rgba(0,255,153,0.06));
+    }
+
+    p.contact{
+      margin:0;
+      margin-top:10px;
+      font-size:clamp(14px, 1.8vw, 20px);
+      color:var(--accent);
+      opacity:0.95;
+      letter-spacing:0.02em;
+    }
+
+    a.mail{
+      color:var(--accent);
+      text-decoration:none;
+      border-bottom:1px dashed rgba(102,255,194,0.08);
+      padding-bottom:2px;
+      transition: all .18s ease;
+    }
+    a.mail:hover{
+      transform:translateY(-2px);
+      text-shadow:0 0 18px rgba(0,255,153,0.1);
+    }
+
+    /* subtle scanline / noise */
+    .card::after{
+      content:"";
+      pointer-events:none;
+      position:absolute;
+      inset:0;
+      background-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.02) 1px);
+      mix-blend-mode: overlay;
+      border-radius:16px;
+    }
+
+    /* footer small hint */
+    .hint{
+      margin-top:14px;
+      font-size:12px;
+      color:rgba(102,255,194,0.18);
+    }
+
+    @media (max-width:420px){
+      .card{ padding:28px 18px; border-radius:12px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="matrix" aria-hidden="true"></canvas>
+
+  <main class="stage" role="main">
+    <section class="card" aria-labelledby="headline">
+      <h1 id="headline">For Sale</h1>
+      <p class="contact">
+        <a class="mail" id="mail-link" href="mailto:email@example.com">BQa3zxqxx@proton.me</a>
+      </p>
+
+    </section>
+  </main>
+
+  <script>
+    /*
+      Minimalny efekt "matrix rain" w canvas.
+      Lekki, responsywny, bez zewnętrznych bibliotek.
+    */
+    (function(){
+      const canvas = document.getElementById('matrix');
+      const ctx = canvas.getContext('2d', { alpha: true });
+      let width = canvas.width = window.innerWidth;
+      let height = canvas.height = window.innerHeight;
+      const cols = Math.floor(width / 18);
+      const drops = new Array(cols).fill(1);
+      const letters = '01<>/\\|_-=+*#%@$€¥&?πΩ∆øλ░▒▓█▓▒░';
+      const size = 16;
+
+      function resize(){
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize, { passive:true });
+
+      function draw(){
+        // translucent background for trail effect
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.fillRect(0,0,width,height);
+
+        ctx.font = size + 'px monospace';
+        for(let i=0;i<drops.length;i++){
+          const text = letters.charAt(Math.floor(Math.random() * letters.length));
+          const x = i * size + 8;
+          const y = drops[i] * size;
+
+          // brighter head
+          ctx.fillStyle = 'rgba(180,255,210,0.9)';
+          ctx.fillText(text, x, y);
+
+          // dim glow a bit above
+          ctx.fillStyle = 'rgba(0,255,150,0.06)';
+          ctx.fillText(text, x, y - 12);
+
+          if(y > height + Math.random() * 1000){
+            drops[i] = 0;
+          }
+          drops[i]++;
+        }
+      }
+
+      // gentle variation in frame rate to reduce CPU
+      let running = true;
+      function loop(){
+        if(!running) return;
+        draw();
+        requestAnimationFrame(loop);
+      }
+      loop();
+
+      // small accessibility: let user replace mail quickly via prompt (optional)
+      // (commented out to avoid annoying popups)
+      // document.getElementById('mail-link').addEventListener('click', (e)=>{
+      //   e.stopPropagation();
+      // });
+
+    })();
+
+    // helper: replace placeholder email quickly via URL param ?mail=you@domain.tld
+    (function(){
+      const params = new URLSearchParams(location.search);
+      const mail = params.get('mail');
+      if(mail){
+        const link = document.getElementById('mail-link');
+        link.href = 'mailto:' + mail;
+        link.textContent = mail;
+      }
+    })();
+  </script>
+</body>
+</html>
