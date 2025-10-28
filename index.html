@@ -1,116 +1,190 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="pl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Domain For Sale</title>
   <style>
-    /* Reset */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    :root{
+      --bg:#000;
+      --neon:#00ff99;
+      --neon-dim:rgba(0,255,153,0.12);
+      --accent:#66ffc2;
+      --glass: rgba(255,255,255,0.03);
+      --font-stack: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
+    }
+    html,body{
+      height:100%;
+      margin:0;
+      background: radial-gradient(ellipse at center, rgba(0,0,0,0.65) 0%, #000 60%);
+      color:var(--neon);
+      font-family:var(--font-stack);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      overflow:hidden;
     }
 
-    /* Tło w stylu "matrix" */
-    body {
-      height: 100vh;
-      width: 100%;
-      background: radial-gradient(ellipse at center, #001a00 0%, #000000 100%);
-      color: #00ff99;
-      font-family: 'Courier New', monospace;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      overflow: hidden;
+    canvas#matrix {
+      position:fixed;
+      inset:0;
+      width:100%;
+      height:100%;
+      z-index:0;
+      display:block;
+      background:linear-gradient(180deg, rgba(0,0,0,0.3), rgba(0,0,0,0.6));
     }
 
-    /* Efekt "błysku" tekstu */
-    h1 {
-      font-size: clamp(2rem, 8vw, 6rem);
-      letter-spacing: 0.1em;
-      text-shadow: 0 0 10px #00ff99, 0 0 20px #00ff99, 0 0 40px #00ff99;
-      animation: pulse 2s infinite alternate;
+    .stage{
+      position:relative;
+      z-index:2;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:5vw;
+      box-sizing:border-box;
     }
 
-    @keyframes pulse {
-      from {
-        text-shadow: 0 0 5px #00ff99, 0 0 10px #00ff99;
-      }
-      to {
-        text-shadow: 0 0 20px #00ff99, 0 0 40px #00ff99;
-      }
+    .card{
+      backdrop-filter: blur(4px) saturate(1.1);
+      background: linear-gradient(180deg, rgba(0,0,0,0.18), rgba(255,255,255,0.02));
+      border-radius:2vw;
+      padding:5vw;
+      box-shadow: 0 0 4vw rgba(0,0,0,0.6);
+      border: 0.3vw solid rgba(0,255,153,0.06);
+      max-width:90vw;
+      width:100%;
+      transform:translateY(-1vw);
     }
 
-    /* E-mail pod spodem */
-    p {
-      font-size: clamp(1rem, 2vw, 1.5rem);
-      margin-top: 1rem;
-      color: #80ffcc;
-      text-shadow: 0 0 5px #00ff99;
+    h1{
+      margin:0 0 1vw 0;
+      font-size:clamp(4vw, 7vw, 12vw);
+      letter-spacing:0.12em;
+      text-transform:uppercase;
+      color:var(--neon);
+      text-shadow:
+        0 0 1vw rgba(0,255,153,0.16),
+        0 0 2vw rgba(0,255,153,0.08),
+        0 0.5vw 3vw rgba(0,0,0,0.6);
+      line-height:0.95;
+      filter: drop-shadow(0 0.5vw 1.5vw rgba(0,255,153,0.06));
     }
 
-    a {
-      color: #00ffcc;
-      text-decoration: none;
-      transition: color 0.3s ease;
+    p.contact{
+      margin:0;
+      margin-top:1vw;
+      font-size:clamp(1.5vw, 2vw, 2.5vw);
+      color:var(--accent);
+      opacity:0.95;
+      letter-spacing:0.02em;
     }
 
-    a:hover {
-      color: #ffffff;
-      text-shadow: 0 0 10px #00ffff;
+    a.mail{
+      color:var(--accent);
+      text-decoration:none;
+      border-bottom:0.1vw dashed rgba(102,255,194,0.08);
+      padding-bottom:0.2vw;
+      transition: all .18s ease;
+    }
+    a.mail:hover{
+      transform:translateY(-0.3vw);
+      text-shadow:0 0 1vw rgba(0,255,153,0.1);
     }
 
-    /* Subtelne "matrixowe" cyfry w tle */
-    .matrix {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      pointer-events: none;
-      z-index: 0;
+    .card::after{
+      content:"";
+      pointer-events:none;
+      position:absolute;
+      inset:0;
+      background-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.02) 1px);
+      mix-blend-mode: overlay;
+      border-radius:2vw;
     }
 
-    .matrix span {
-      position: absolute;
-      color: rgba(0, 255, 100, 0.1);
-      font-size: 1rem;
-      animation: fall linear infinite;
+    .hint{
+      margin-top:1vw;
+      font-size:1vw;
+      color:rgba(102,255,194,0.18);
     }
 
-    @keyframes fall {
-      0% {
-        transform: translateY(-10%);
-      }
-      100% {
-        transform: translateY(110%);
-      }
+    @media (max-width:768px){
+      h1{ font-size:clamp(6vw, 12vw, 18vw); }
+      p.contact{ font-size:clamp(3vw, 4vw, 5vw); }
+      .card{ padding:8vw; border-radius:4vw; }
     }
   </style>
 </head>
 <body>
-  <div class="matrix" id="matrix"></div>
-  <h1>FOR SALE</h1>
-  <p><a href="mailto:BQa3zxqxx@proton.me">Contact: BQa3zxqxx@proton.me</a></p>
+  <canvas id="matrix" aria-hidden="true"></canvas>
+
+  <main class="stage" role="main">
+    <section class="card" aria-labelledby="headline">
+      <h1 id="headline">For Sale</h1>
+      <p class="contact">
+        <a class="mail" id="mail-link" href="mailto:BQa3zxqxx@proton.me">BQa3zxqxx@proton.me</a>
+      </p>
+    </section>
+  </main>
 
   <script>
-    // Generowanie "spadających cyfr" w tle
-    const matrix = document.getElementById('matrix');
-    const chars = '01';
-    const count = 60;
+    (function(){
+      const canvas = document.getElementById('matrix');
+      const ctx = canvas.getContext('2d', { alpha: true });
+      let width = canvas.width = window.innerWidth;
+      let height = canvas.height = window.innerHeight;
+      let size = Math.max(12, Math.floor(width / 60)); // dynamiczny rozmiar liter
+      let cols = Math.floor(width / size);
+      let drops = new Array(cols).fill(1);
+      const letters = '01<>/\\|_-=+*#%@$€¥&?πΩ∆øλ░▒▓█▓▒░';
 
-    for (let i = 0; i < count; i++) {
-      const span = document.createElement('span');
-      span.textContent = chars[Math.floor(Math.random() * chars.length)];
-      span.style.left = Math.random() * 100 + 'vw';
-      span.style.animationDuration = 2 + Math.random() * 5 + 's';
-      span.style.animationDelay = Math.random() * 5 + 's';
-      matrix.appendChild(span);
-    }
+      function resize(){
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        size = Math.max(12, Math.floor(width / 60));
+        cols = Math.floor(width / size);
+        drops = new Array(cols).fill(1);
+      }
+      window.addEventListener('resize', resize, { passive:true });
+
+      function draw(){
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.fillRect(0,0,width,height);
+        ctx.font = size + 'px monospace';
+
+        for(let i=0;i<drops.length;i++){
+          const text = letters.charAt(Math.floor(Math.random() * letters.length));
+          const x = i * size;
+          const y = drops[i] * size;
+
+          ctx.fillStyle = 'rgba(180,255,210,0.9)';
+          ctx.fillText(text, x, y);
+
+          ctx.fillStyle = 'rgba(0,255,150,0.06)';
+          ctx.fillText(text, x, y - size);
+
+          if(y > height + Math.random()*1000) drops[i] = 0;
+          drops[i]++;
+        }
+      }
+
+      (function loop(){
+        draw();
+        requestAnimationFrame(loop);
+      })();
+
+    })();
+
+    (function(){
+      const params = new URLSearchParams(location.search);
+      const mail = params.get('mail');
+      if(mail){
+        const link = document.getElementById('mail-link');
+        link.href = 'mailto:' + mail;
+        link.textContent = mail;
+      }
+    })();
   </script>
 </body>
 </html>
